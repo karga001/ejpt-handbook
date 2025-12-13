@@ -1,57 +1,44 @@
 # Metasploitable2
 
-Bu dizin, Metasploitable2 hedefi üzerinde yapılan eJPT odaklı çalışmaları içerir.
-Her gün ayrı dosya halinde belgelenmiştir.
+Bu klasörde Metasploitable2 üzerinde yaptığım eJPT odaklı çalışmalara ait notlar var.  
+Hepsi düzenli bir rapor şeklinde değil, daha çok süreçte aldığım notlar gibi tutuldu.
 
-Yerel ağda canlı sistemleri tespit etme amaçlı yapılan nmap taramasında -sn parametresi kullanılmış ve Metasploitable2 yerel ip adresi belirlenmiştir.
-Metasplotable2 makinesinin üzerindeki açık TCP portlarını tespit edebilmek amacıyla nmap SYN taraması (-sS) kullanılmıştır
-21/tcp   open  ftp
-22/tcp   open  ssh
-23/tcp   open  telnet
-25/tcp   open  smtp
-53/tcp   open  domain
-80/tcp   open  http
-111/tcp  open  rpcbind
-139/tcp  open  netbios-ssn
-445/tcp  open  microsoft-ds
-512/tcp  open  exec
-513/tcp  open  login
-514/tcp  open  shell
-1099/tcp open  rmiregistry
-1524/tcp open  ingreslock
-2049/tcp open  nfs
-2121/tcp open  ccproxy-ftp
-3306/tcp open  mysql
-5432/tcp open  postgresql
-5900/tcp open  vnc
-6000/tcp open  X11
-6667/tcp open  ircrgre
-8009/tcp open  ajp13
-8180/tcp open  unknown
-Tarama sonucunda yukarıda listelenen servislerin hedef sistem üzerinde erişilebilir durumda olduğu anlaşılmıştır.
+İlk olarak yerel ağda hangi makineler var görmek için basit bir Nmap taraması yaptım. Bu aşamada ayrıntı önemli değildi, sadece canlı sistemleri görmek yeterliydi. Bu sayede Metasploitable2 makinesinin yerel IP adresi ortaya çıktı.
 
-Riskli olan portlar:
+Daha sonra hedef sistemde neler açık diye bakmak için SYN taraması kullandım. Burada amaç her servisi tek tek analiz etmekten çok, genel olarak sistemin ne kadar “açık” olduğunu görmekti. Çıkan sonuçlar aşağı yukarı şöyleydi:
 
-21/2121 – FTP, ccproxy-ftp 
-Şifreleme kullanılmadığı için kimlik bilgileri ve dosya içerikleri ağ üzerinden okunabilir.
+21/tcp   ftp  
+22/tcp   ssh  
+25/tcp   smtp  
+53/tcp   domain  
+80/tcp   http  
+111/tcp  rpcbind  
+512/tcp  exec  
+513/tcp  login  
+514/tcp  shell  
+1099/tcp rmiregistry  
+1524/tcp ingreslock  
+2121/tcp ccproxy-ftp  
+3306/tcp mysql  
+5432/tcp postgresql  
+5900/tcp vnc  
+6000/tcp X11  
+6667/tcp irc  
+8009/tcp ajp13  
+8180/tcp unknown  
 
-22/SSH 
-Zayıf şifreleme veya yanlış yapılandırmaya karşı brute-force saldırılarına açıktır
+Listeye bakınca sistem üzerinde normalden fazla servis açık olduğu hemen fark ediliyor. Hepsi aynı derecede önemli değil ama bazıları özellikle göze çarpıyor.
 
-23/Telnet 
-Şifreleme olmadığı için iletişim düz metin olarak kolayca okunabilir
+FTP servisleri (21 ve 2121) şifreleme kullanılmadığı durumlarda her zaman soru işareti yaratıyor. Dosya erişimi ve kimlik bilgileri açısından kontrol edilmesi gereken servisler.
 
-512/exec, 513/login, 514/shell 
-Eski servisler olduğundan dolayı modern güvenlik protokollerini içermez ve izinsiz erişim sağlanabilir
+SSH tarafı (22) tek başına problem değil ama parola ayarları zayıfsa riskli hale gelebiliyor. Bu yüzden tamamen güvenli demek doğru olmaz.
 
-139/44 5Netbios, SMB
-İnternete açık olması durumunda dosya paylaşımı ve kimlik sızıntısına yol açabilir
+512, 513 ve 514 numaralı portlarda çalışan servisler daha çok eski sistemlerde görülen şeyler. Güncel sistemlerde pek karşılaşılmıyor, bu da hedefin yapısı hakkında fikir veriyor.
 
-5900/VNC
-Grafik arayüzü sağlar, zayıf veya eksik doğrulama durumunda tam kullanıcı kontrolünü mümkün kılar
+VNC (5900) uzaktan erişim için kullanılıyor. Kimlik doğrulama tarafı zayıfsa sonuçları ağır olabilir.
 
-3306/Mysql, 5432/Postgre
-Veritabanları servisleri dış erişime açık doğrudan veri sızıntısına yol açabilir 
+Veritabanı servisleri (3306 ve 5432) dış erişime açık olduğunda doğrudan veriyi ilgilendiriyor. Bu yüzden ayrıca dikkat edilmesi gereken servisler arasında.
 
-80/HTTP
-Web uygulamarı geniş saldırı yüzeyi olduğundan yapılandırma ve kimlik doğrulama hataları barındırabilir.
+HTTP tarafı (80 ve 8180) zaten başlı başına geniş bir alan. Web uygulamaları genelde ayrı bir inceleme gerektiriyor, o yüzden burada sadece not düşmekle yetindim.
+
+Bu aşamada hedef sistemi zorlamak veya derine inmek gibi bir amaç yoktu. Daha çok genel tabloyu görmek ve sonraki adımda nereye odaklanacağıma karar vermek için yapılan bir çalışmaydı.
